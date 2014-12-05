@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>HTML5 Mouse Events Demo</title>
+  
+  <style type='text/css'>
+	body {
+		margin: 0px;
+		padding: 0px;
+	}
+	#myCanvas {
+		border: 1px solid #9C9898;
+	}
+
+	#preview{
+		position: relative;
+		width: 255px;
+		height: 120px;
+		border: 1px solid #9C9898;
+	}#dot{
+		width: 3px;
+		height: 3px;
+		background-color: red;
+		position: absolute;
+	}
+  </style>
+  
+
+<script type='text/javascript' src='http://127.0.0.1:3000/socket.io/socket.io.js'></script>
+<script type='text/javascript'>//<![CDATA[ 
+window.addEventListener('load', function() {
+
+function writeMessage(canvas, message) {
+	var context = canvas.getContext('2d');
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.font = '18pt Calibri';
+	context.fillStyle = 'black';
+	context.fillText(message, 10, 25);
+}
+          
+function getMousePos(canvas, evt) {
+	var rect = canvas.getBoundingClientRect(), root = document.documentElement;
+	// return relative mouse position
+	var mouseX = evt.clientX - rect.top - root.scrollTop;
+	var mouseY = evt.clientY - rect.left - root.scrollLeft;
+	return {
+		x: mouseX,
+		y: mouseY
+	};
+}
+
+var canvas = document.getElementById('myCanvas');
+var context = canvas.getContext('2d');
+
+var message = "Mouse position: ";
+writeMessage(canvas, message);
+
+var socket = io.connect('http://127.0.0.1:3000');
+canvas.onmouseup = function(evt) {
+	var mousePos = getMousePos(canvas, evt);
+	var message = {x: mousePos.x , y: mousePos.y};
+	socket.emit('mouselocation', message);
+};
+
+canvas.addEventListener('mousemove', function(evt) {
+	var mousePos = getMousePos(canvas, evt);
+	var message = "Mouse position: " + mousePos.x + "," + mousePos.y;
+	writeMessage(canvas, message);
+}, false);
+
+canvas.addEventListener('mouseout', function(evt) {
+	var message = "Mouse position: ";
+	writeMessage(canvas, message);
+    
+}, false);
+
+socket.on('mouselocation', function(pos) {
+	var dot = document.getElementById('dot');
+	dot.style.left = (pos.x - 2) + "px";
+	dot.style.top = (pos.y - 2) + "px";
+});
+
+});//]]>  
+
+</script>
+
+
+</head>
+<body>
+  <!DOCTYPE HTML>
+<html>
+  <head>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="255" height="120"></canvas>
+    <div id="preview"><div id="dot"></div></div>
+  </body>
+</html>
+
+  
+</body>
+
+
+</html>
